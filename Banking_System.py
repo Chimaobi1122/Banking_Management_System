@@ -1,102 +1,132 @@
 import json
+import sys
+import random 
 import os
-import random
-def bank():
-    def check_input(*args):
-        #pass the values user must to this function
-        valid = False
-        while not valid:
-            user_choice = str(input('>')).lower()
-            loop_end = False
-            for arg in args:
-                if user_choice == str(arg).lower():
-                    valid = True
-                    loop_end = True
-                    return user_choice
-            if not loop_end:
-                print('Please enter a valid command, Thank You.')
+from datetime import datetime
 
-    def main():
-        logged_in = False
-        if os.path.exists('session.txt'):
-            logged_in = True
-            with open('session.txt', 'r') as f:
-                foo = json.load(f)
-                name = foo[0]['username']
-                print('welcome back ', name)
-                print()
-        else:
-            print('Press login to Log In.')
-            print('Press end to End Program.')
-            login_choice = check_input('login', 'end')
-            if login_choice == 'login':
-                while not logged_in:
-                    username = str(input('username: ')).lower()
-                    password = str(input('password: '))
-                    with open('staff.txt') as file:
-                        user_data = json.load(file)
-                        for user in user_data:
-                            if user['username'] == username and user['password'] == password:
-                                logged_in = True
-        if logged_in:
-            if not os.path.exists('session.txt'): 
-                with open('session.txt','w+') as file:                     
-                        session=[{
-                            'username':username
-                            }]
-                        json.dump(session, file)
-            close_session_file = open('session.txt')
-            
-            is_finished = False
-            while not is_finished:
-                print('Press 1 to create new account details')
-                print('Press 2 to check account details')
-                print('Press 3 to Logout')
-                staff_choice = check_input('1', '2', '3')
-                if staff_choice == '1':
-                    acc_name = str(input('Account Name: '))
-                    while True:
-                        try:
-                            acc_balance = int(input('Opening Balance in naira: '))
-                            break
-                        except ValueError:
-                            continue
-                    acc_type = str(input('Account Type: '))
-                    acc_num = "".join(str(random.randint(0,9)) for i in range(11))
+customer_file="customers.txt"
+staff_file = "staffs.txt"
+customer_data=[]
+user_session = "user_session.txt"
 
-                    with open('customer.txt') as file:
-                        try:
-                            customer_details = json.load(file)
-                        except:
-                            customer_details= []
-                        customer_details.append({
-                            'acc_num':acc_num,
-                            'acc_name': acc_name,
-                            'acc_balance': acc_balance,
-                            'acc_type': acc_type
-                            })
-                    with open('customer.txt', 'w') as file:
-                        json.dump(customer_details, file)
-                        print(acc_num)
-                elif staff_choice == '2':
-                    your_acc_num = str(input('Input account number: '))
-                    with open('customer.txt', 'r') as file:
-                        customer_details = json.load(file)
-                        found = False
-                        for customer_detail in customer_details:
-                            if customer_detail['acc_num'] == your_acc_num:
-                                print("Account name: ", customer_detail['acc_name'])
-                                print("Account number: ", customer_detail['acc_num'])
-                                print("Balance: ", customer_detail['acc_balance'])
-                                print("Account Type: ", customer_detail['acc_type'])
-                                found = True
-                        if not found:
-                            print('Sorry could\'nt find a user with that account number')
-                elif staff_choice == '3':
-                    close_session_file.close()
-                    os.remove('session.txt')
-                    is_finished = True
-            main()
-    main()
 
-bank()
+
+#staff data 
+data = {}
+data["staff"] = []
+data["staff"].append({
+    "Fullname": "Onuh Chuks",
+    "Username": "chuks",
+    "Password": "1234",
+    "Email": "chuksonuh@email.com"
+})
+data["staff"].append({
+    "fullname": "James John",
+    "username": "James",
+    "password": "1234",
+    "email": "jamesjohn@email.com"
+})
+#A function to write data to a file 
+def write_data(file_name, file_contents):
+    with open(file_name, "w") as staff_file:
+        json.dump(file_contents, staff_file)
+
+
+#checks the user login from file before granting access
+def check_login():    
+    with open('staffs.txt') as json_file:
+	
+        data = json.load(json_file)
+        global Username
+        Username = input("Username: ")
+        Password =input("Password: ")
+        for foo in data['staff']:
+            if foo["Username"] == Username and foo["Password"] == Password:
+                x = foo["Username"] 
+                y = foo["Password"]
+                x == y  is True
+                #Creates a login session for a staff and saves it to session.txt
+                login_time= Username +" "+ "signed-in at " + str(datetime.now())
+                write_data(user_session, login_time) 
+                print (f"Welcome {Username}")
+                staff_permissions()
+                break
+            else:
+                print("Invalid username or password!!!")
+                check_login()
+
+#Main menu for before login 
+def main():
+    print("""	
+	1. Staff Login
+	2  Exit
+	""")
+    choice = input("Select an option: ")
+    
+    if choice == "2":
+        sys.exit()
+        
+    elif choice == "1":
+        print("Enter login details: ")
+        check_login()
+        
+    else:
+        print("Enter a valid input!!!")
+        main()
+    # except:
+        #     ("Enter a number 1 or 2")
+        #     main()
+#After the user logs in he can use any of the features below 
+def staff_permissions():
+    print("""	
+	1. Create new bank account
+	2  Check account details
+	3. Logout
+	""")
+    staff_selection=input()
+    if staff_selection == "1":
+        print ("Enter the customer's information ")
+        account_name = input("Account full name: ")
+        starting_balance = input("starting Balance: ")
+        account_type= input("Account Type: ")
+        email= input("Customer's email: ")
+        #Generate a random account Number 
+        account_number = random.randint (1000000000, 9999999999)
+        #append customer data to a list 
+        customer_data.append([account_name, starting_balance, account_type, email, account_number])
+        print(customer_data)
+        #write customer data to file
+        write_data(customer_file, customer_data)
+        print("Account successfully created!!!")
+        print (f"Your new account number is {account_number}")
+        staff_permissions()
+#feature to check the account number from  file 
+    elif staff_selection == "2":
+        check_account = int(input("Enter your account number: "))
+        print (f"Your account number is {check_account}")
+        with open(customer_file) as json_file:
+            data = json.load(json_file)
+            if int(data[0][4]) == check_account:
+                print (f"Your Account balance is {data[0][1]}")
+                staff_permissions()
+            else:
+                print("Account not found")
+                staff_permissions()
+#Log out and return to the main menu 
+    elif staff_selection == "3":
+        logout_time= Username +" "+ "signed-out at " + str(datetime.now())
+        write_data(user_session, logout_time)
+        print(logout_time) 
+        os.remove("user_session.txt")
+        main()
+    else:
+        ("Invalid input!!!")
+        staff_permissions()
+
+write_data(staff_file, data)
+main()
+check_login()
+
+
+
+    
