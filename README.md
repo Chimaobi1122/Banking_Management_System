@@ -5,4 +5,4 @@ to create an account for a user.
 Login using either of the authorize staff below in order to run the program.
 
 #### "Username": "chuks", "Password"" "1234",
-#### "username": "James", "password": "1234"
+#### "Username": "James", "password": "1234"
